@@ -1,0 +1,2 @@
+{"username": "deneme", "password": "deneme", "name": "ahmet", "surname": "test", "school": "yok", "section": "yok", "lessons": [{"lesson": "almanca", "notes": ["5", "10", "15"]}]}
+{"username": "bob", "password": "bob", "name": "hamdi", "surname": "das", "school": "yok", "section": "yok", "lessons": []}
