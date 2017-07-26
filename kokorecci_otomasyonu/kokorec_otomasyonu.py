@@ -102,8 +102,17 @@ def createNewOrder(product,address):
     else:
         return 0
 
-def createNewFis(cost):
-    pass
+def createNewFis(productName,cost):
+    print('''
+*-----------------*
+* Koko Restorant  *
+*-----------------*
+Ürün  : {}
+Ücret : {}TL
+Kdv   : %8
+Total : {}TL
+*******************
+    '''.format(productName,cost, cost + cost*8/100))
 
 ### RESTAURANT FUNCTIONS ###
 # @param name  = Ürün Adı
@@ -180,8 +189,10 @@ def restaurantShowProducts():
 def restaurantShowOrders():
     print('\n')
     # order listteki elemanları sırayla order'a aktar
+    i = 1
     for order in ORDER_LIST:
-        print('Ürün adı: {}, Sipariş adresi: {}, Ürün tipi: {}'.format(order['name'],order['address'],order['type']))
+        print(str(i)+'. Sipariş\n','Ürün adı: {}, Sipariş adresi: {}, Ürün tipi: {}\n'.format(order['name'],order['address'],order['type']),sep='')
+        i += 1
     print('\n')
     showRestaurantMenu()
 
@@ -239,13 +250,13 @@ def showProductMenu():
             else: # adres dükkana ise
                 address = 'dükkan'
             
-            if createNewOrder(product,address): # yeni sipariş oluştur
+            if createNewOrder(PRODUCT_LIST[productID],address): # yeni sipariş oluştur
                 # ürünün stokunu 1 azalt
                 PRODUCT_LIST[productID]['stock'] -= 1
                 saveDBtoFile()
 
                 print('\n\nSiparişiniz başarıyla verildi.\n\nFişiniz:')
-                createNewFis(product['cost']) # yeni fiş oluştur
+                createNewFis(PRODUCT_LIST[productID]['name'],PRODUCT_LIST[productID]['cost']) # yeni fiş oluştur
 
     except ValueError:
         print('\n\nLütfen bir sayı giriniz.')
