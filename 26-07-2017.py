@@ -1,26 +1,3 @@
-# try:
-#     print(x)
-# except:
-#     print('x tanımlı değil.')
-
-# try:
-#     yas = int(input('Yaş: '))
-#     print(yas)
-# except ValueError as err:
-#     print('String girmeyiniz\n',err.args[0],sep='')
-# print('lyk')
-
-# for i in ['5',(5,4),9,'m','6']:
-#     try:
-#         print(int(i)*2)    
-#     except TypeError as err:
-#         print('Tip hatası',err)
-#     except ValueError as err:
-#         print('Değer hatası',err)
-
-# while 1:
-#     try:
-#         number1 = int(input('Sayı 1: '))
 '''
 n tane değer alıncak int olmayacak, dizinin içindeki her elemanın harf sayısını bulcaz
 2 ye bölünüyorsa true değilse false
