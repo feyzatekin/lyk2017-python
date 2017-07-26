@@ -1,0 +1,2 @@
+{"username": "qwewqe", "password": "qwe", "name": "qwe", "surname": "qwe", "school": "q", "section": "weqw", "lessons": [{"lesson": "almanca", "notes": ["5", "10", "15"]}]}
+{"username": "ege", "password": "test", "name": "qwe", "surname": "das", "school": "qwe", "section": "asd", "lessons": []}
