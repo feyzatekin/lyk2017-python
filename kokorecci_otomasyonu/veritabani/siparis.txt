@@ -1,0 +1,4 @@
+{"name": "deneme", "address": "d\u00fckkan", "cost": 10, "type": "yiyecek"}
+{"name": "deneme", "address": "deneme bir adres", "cost": 10, "type": "yiyecek"}
+{"name": "deneme", "address": "test bir adres daha", "cost": 10, "type": "yiyecek"}
+{"name": "deneme", "address": "d\u00fckkan", "cost": 10, "type": "yiyecek"}

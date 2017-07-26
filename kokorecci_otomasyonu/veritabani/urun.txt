@@ -1,0 +1,3 @@
+{"name": "deneme", "stock": 92, "cost": 10, "type": "yiyecek"}
+{"name": "Kokore\u00e7", "stock": 10, "cost": 25, "type": "yiyecek"}
+{"name": "B\u00c3\u00b6rek", "stock": 0, "cost": 25, "type": "yiyecek"}
