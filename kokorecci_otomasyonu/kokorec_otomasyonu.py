@@ -19,14 +19,18 @@ def updateDB():
     PRODUCT_LIST = []
     ORDER_LIST   = []
 
-    # ürün listesi için okuma işlemini yap, \n den parçala ve değişkene ata
-    PRODUCT_LIST = readFile(VALID_PATHS['product']).split('\n')[:-1]
-    # hepsini sözlüke çevir
-    for i in range(len(PRODUCT_LIST)): PRODUCT_LIST[i] = json.loads(PRODUCT_LIST[i])
+    try:
+        # ürün listesi için okuma işlemini yap, \n den parçala ve değişkene ata
+        PRODUCT_LIST = readFile(VALID_PATHS['product']).split('\n')[:-1]
+        # hepsini sözlüke çevir
+        for i in range(len(PRODUCT_LIST)): PRODUCT_LIST[i] = json.loads(PRODUCT_LIST[i])
 
-    # sipariş için okuma işlemini yap, \n den parçala ve değişkene ata
-    ORDER_LIST   = readFile(VALID_PATHS['order']).split('\n')[:-1]
-    for i in range(len(ORDER_LIST)): ORDER_LIST[i] = json.loads(ORDER_LIST[i])
+        # sipariş için okuma işlemini yap, \n den parçala ve değişkene ata
+        ORDER_LIST   = readFile(VALID_PATHS['order']).split('\n')[:-1]
+        for i in range(len(ORDER_LIST)): ORDER_LIST[i] = json.loads(ORDER_LIST[i])
+    except:
+        while True:
+            print('FATAL ERROR!!!')
 
 def saveDBtoFile():
     productData = ''
@@ -44,7 +48,7 @@ def saveDBtoFile():
     writeFile(VALID_PATHS['order'],orderData) # dosyaya yaz
 
 ### FILE FUNCTIONS ###
-# @par fileName = okunacak dosyanın adı
+# @param fileName = okunacak dosyanın adı
 # @return = başarılı olur ise okunan dosyanı içeriği, başarısız olursa false
 def readFile(fileName):
     try:
@@ -54,8 +58,8 @@ def readFile(fileName):
     except:
         return 0
 
-# @par fileName  = okunacak dosyanın adı
-# @par writeData = dosyaya yazılacak data
+# @param fileName  = okunacak dosyanın adı
+# @param writeData = dosyaya yazılacak data
 # @return = başarılı olur ise true, başarısız olursa false
 def writeFile(fileName,writeData):
     try:
@@ -65,8 +69,8 @@ def writeFile(fileName,writeData):
     except:
         return 0
 
-# @par fileName  = okunacak dosyanın adı
-# @par writeData = dosyaya yazılacak data
+# @param fileName  = okunacak dosyanın adı
+# @param writeData = dosyaya yazılacak data
 # @return = başarılı olur ise true, başarısız olursa false
 def appendFile(fileName,writeData,autoEOL=True):
     try:
@@ -79,12 +83,33 @@ def appendFile(fileName,writeData,autoEOL=True):
         return 0
 
 ### CLIENT FUNCTIONS ###
+# @param product = ürün
+# @param address = sipariş veren kişinin adresi
+def createNewOrder(product,address):
+    # verileri saklıyacağımız sözlüğü oluştur
+    orderData = {
+        'name':product['name'],
+        'address':address,
+        'cost':product['cost'],
+        'type':product['type']
+    }
+    
+    orderData = json.dumps(orderData) # parse orderData
+    
+    if appendFile( VALID_PATHS['order'], orderData ): # dosya ya kayıt et
+        updateDB()
+        return 1
+    else:
+        return 0
+
+def createNewFis(cost):
+    pass
 
 ### RESTAURANT FUNCTIONS ###
-# @par name  = Ürün Adı
-# @par stock = Stocktaki ürün miktarı
-# @par cost  = Ürün fiyatı
-# @par type  = Ürün tipi (yiyecek,içecek,tatlı)
+# @param name  = Ürün Adı
+# @param stock = Stocktaki ürün miktarı
+# @param cost  = Ürün fiyatı
+# @param type  = Ürün tipi (yiyecek,içecek,tatlı)
 def restaurantAddProduct():
     print('\n')
     # ürünü oluştur
@@ -110,7 +135,7 @@ def restaurantAddProduct():
         print('\n\nÜrün başarıyla eklendi.\n\n')
     showRestaurantMenu() # restorant yönetimi bölümünü tekrar göster
 
-# @par product = restaurantAddProduct fonksiyonundan gelen product(ürün)
+# @param product = restaurantAddProduct fonksiyonundan gelen product(ürün)
 def restaurantSaveProduct(product):
     if appendFile( VALID_PATHS['product'], product ) == 1: # başarı ile yazarsak
         updateDB() # veritabanını güncelle
@@ -152,6 +177,14 @@ def restaurantShowProducts():
     print('\n')
     showRestaurantMenu()
 
+def restaurantShowOrders():
+    print('\n')
+    # order listteki elemanları sırayla order'a aktar
+    for order in ORDER_LIST:
+        print('Ürün adı: {}, Sipariş adresi: {}, Ürün tipi: {}'.format(order['name'],order['address'],order['type']))
+    print('\n')
+    showRestaurantMenu()
+
 ### MENU/SCREEN FUNCTIONS ###
 def showMainScreen():
     print('=== KOKOREÇ OTOMASYONU ===\n\n',
@@ -177,25 +210,64 @@ def showClientMenu():
     print('a) Menü\n')
 
 def showProductMenu():
-    print('\n\n=== MENÜ ===\n\n',
-          'Kokoreç\n','-'*10)
+    print('\n\n=== MENÜ ===\n\n')
+
+    i = 0# index tutucu
+    # product listteki elemanları sırayla product'a aktar
+    for product in PRODUCT_LIST:
+        print('#'+str(i),product['name'],' | Stok: {}'.format(str(product['stock']))) # sırayla ekrana bastır
+        i += 1 # indexi 1 arttır
+    
+    try:
+        print('\n')
+        productID = int(input('Neyi tercih edersiniz? ')) # ürün id sini al
+
+        if productID >= i: # eğer id geçersiz ise
+            print('\n\nLütfen geçerli bir id giriniz.')
+            showProductMenu()
+        else: # id geçerli ise
+            if PRODUCT_LIST[productID]['stock'] < 1: # eğer stokta kalmamış ise
+                print('\n\nBu ürünün stoku kalmamıştır.')
+                showProductMenu()
+            toWhere = input('Adrese sipariş mi, yoksa dükkana mı? (adres,dükkan) ') # adresi al
+
+            if toWhere not in ['adres','dükkan']: # sipariş yerini yanlış yazar ise
+                print('Geçerli bir seçim yapınız.')
+                showProductMenu()
+            elif toWhere == 'adres': # adrese sipariş ise
+                address = input('Adresinizi giriniz: ') # adresi al
+            else: # adres dükkana ise
+                address = 'dükkan'
+            
+            if createNewOrder(product,address): # yeni sipariş oluştur
+                # ürünün stokunu 1 azalt
+                PRODUCT_LIST[productID]['stock'] -= 1
+                saveDBtoFile()
+
+                print('\n\nSiparişiniz başarıyla verildi.\n\nFişiniz:')
+                createNewFis(product['cost']) # yeni fiş oluştur
+
+    except ValueError:
+        print('\n\nLütfen bir sayı giriniz.')
+        showProductMenu()
 
 def showRestaurantMenu():
     print('Ürün Ayarları\n','-'*10,
           '\na) Ekle\n','b) Sil\n\n',
           'Stok\n','-'*10,
-          '\nc) Göster','\n',sep='')
+          '\nc) Göster',
+          '\nd) Siparişler\n',sep='')
     while 1:
         command = input('[Yönetici] Komut >> ')
 
         # yöneticinin gönderdiği komuta göre işlem yap
-        if doCommand(command,['a','b','c'],[restaurantAddProduct,restaurantDeleteProduct,restaurantShowProducts]) == 1:
+        if doCommand(command,['a','b','c','d'],[restaurantAddProduct,restaurantDeleteProduct,restaurantShowProducts,restaurantShowOrders]) == 1:
             break
 
 ### OFF-FUNCTIONS ###
-# @par command = komut (string)
-# @par permissionList = doğru olan komutlar (array)
-# @par runFuncOnPermission = eğer komut doğru ise çağırılacak fonksiyonların listesi (array)
+# @param command = komut (string)
+# @param permissionList = doğru olan komutlar (array)
+# @param runFuncOnPermission = eğer komut doğru ise çağırılacak fonksiyonların listesi (array)
 def doCommand(command,permissionList,runFuncOnPermission):
     if command not in permissionList:
         print('\nGeçerli bir komut girin!\n')
