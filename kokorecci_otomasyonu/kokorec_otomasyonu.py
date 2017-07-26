@@ -32,14 +32,16 @@ def saveDBtoFile():
     productData = ''
     orderData   = ''
 
+    # i ye product listteki product'ı ata
     for i in PRODUCT_LIST:
-        productData += json.dumps(i)+'\n'
+        productData += json.dumps(i)+'\n' # parse işlemini yap
 
+    # i ye order listteki order'ı ata
     for i in ORDER_LIST:
-        orderData += json.dumps(i)+'\n'
+        orderData += json.dumps(i)+'\n' # parse işlemini yap
     
-    writeFile(VALID_PATHS['product'],productData)
-    writeFile(VALID_PATHS['order'],orderData)
+    writeFile(VALID_PATHS['product'],productData) # dosyaya yaz
+    writeFile(VALID_PATHS['order'],orderData) # dosyaya yaz
 
 ### FILE FUNCTIONS ###
 # @par fileName = okunacak dosyanın adı
@@ -120,29 +122,31 @@ def restaurantDeleteProduct():
     print('\n')
     
     i = 0 # index tutucu
+    # product listteki elemanları sırayla product'a aktar
     for product in PRODUCT_LIST:
-        print('#'+str(i),product['name'])
+        print('#'+str(i),product['name']) # index kullanarak ekrana yazdır
         i += 1
     
     try:
         print('\n')
-        productID = int(input('Silmek istediğiniz id? '))
+        productID = int(input('Silmek istediğiniz id? ')) # ürün id'sini tutuyoruz
         
-        if productID >= i:
+        if productID >= i: # id yanlış ise
             print('\n\nDoğru bir ID giriniz!')
             restaurantDeleteProduct()
-        else:
+        else: # doğru ise sil ve veritabanına kayıt et
             del PRODUCT_LIST[productID]
             saveDBtoFile()
 
             print('\n\nBaşarıyla sildiniz.')
             showRestaurantMenu()
-    except TypeError:
+    except TypeError: # sayı girilmez ise
         print('\n\nLütfen bir sayı giriniz')
         restaurantDeleteProduct()
 
 def restaurantShowProducts():
     print('\n')
+    # product listteki elemanları sırayla product'a aktar
     for product in PRODUCT_LIST:
         print('Ürün adı: {}, Stok: {}'.format(product['name'],str(product['stock'])))
     print('\n')
