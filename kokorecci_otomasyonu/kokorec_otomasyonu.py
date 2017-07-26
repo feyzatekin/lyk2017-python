@@ -21,9 +21,25 @@ def updateDB():
 
     # ürün listesi için okuma işlemini yap, \n den parçala ve değişkene ata
     PRODUCT_LIST = readFile(VALID_PATHS['product']).split('\n')[:-1]
+    # hepsini sözlüke çevir
+    for i in range(len(PRODUCT_LIST)): PRODUCT_LIST[i] = json.loads(PRODUCT_LIST[i])
 
     # sipariş için okuma işlemini yap, \n den parçala ve değişkene ata
     ORDER_LIST   = readFile(VALID_PATHS['order']).split('\n')[:-1]
+    for i in range(len(ORDER_LIST)): ORDER_LIST[i] = json.loads(ORDER_LIST[i])
+
+def saveDBtoFile():
+    productData = ''
+    orderData   = ''
+
+    for i in PRODUCT_LIST:
+        productData += json.dumps(i)+'\n'
+
+    for i in ORDER_LIST:
+        orderData += json.dumps(i)+'\n'
+    
+    writeFile(VALID_PATHS['product'],productData)
+    writeFile(VALID_PATHS['order'],orderData)
 
 ### FILE FUNCTIONS ###
 # @par fileName = okunacak dosyanın adı
@@ -102,7 +118,35 @@ def restaurantSaveProduct(product):
 
 def restaurantDeleteProduct():
     print('\n')
-    print(PRODUCT_LIST)
+    
+    i = 0 # index tutucu
+    for product in PRODUCT_LIST:
+        print('#'+str(i),product['name'])
+        i += 1
+    
+    try:
+        print('\n')
+        productID = int(input('Silmek istediğiniz id? '))
+        
+        if productID >= i:
+            print('\n\nDoğru bir ID giriniz!')
+            restaurantDeleteProduct()
+        else:
+            del PRODUCT_LIST[productID]
+            saveDBtoFile()
+
+            print('\n\nBaşarıyla sildiniz.')
+            showRestaurantMenu()
+    except TypeError:
+        print('\n\nLütfen bir sayı giriniz')
+        restaurantDeleteProduct()
+
+def restaurantShowProducts():
+    print('\n')
+    for product in PRODUCT_LIST:
+        print('Ürün adı: {}, Stok: {}'.format(product['name'],str(product['stock'])))
+    print('\n')
+    showRestaurantMenu()
 
 ### MENU/SCREEN FUNCTIONS ###
 def showMainScreen():
@@ -141,7 +185,7 @@ def showRestaurantMenu():
         command = input('[Yönetici] Komut >> ')
 
         # yöneticinin gönderdiği komuta göre işlem yap
-        if doCommand(command,['a','b','c'],[restaurantAddProduct]) == 1:
+        if doCommand(command,['a','b','c'],[restaurantAddProduct,restaurantDeleteProduct,restaurantShowProducts]) == 1:
             break
 
 ### OFF-FUNCTIONS ###
