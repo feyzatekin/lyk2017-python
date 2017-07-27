@@ -26,11 +26,11 @@ def updateDB():
         for i in range(len(PRODUCT_LIST)): PRODUCT_LIST[i] = json.loads(PRODUCT_LIST[i])
 
         # sipariş için okuma işlemini yap, \n den parçala ve değişkene ata
-        ORDER_LIST   = readFile(VALID_PATHS['order']).split('\n')[:-1]
+        ORDER_LIST = readFile(VALID_PATHS['order']).split('\n')[:-1]
         for i in range(len(ORDER_LIST)): ORDER_LIST[i] = json.loads(ORDER_LIST[i])
     except:
-        while True:
-            print('FATAL ERROR!!!')
+        print('FATAL ERROR!!!\n'*10)
+        raise Exception
 
 def saveDBtoFile():
     productData = ''
@@ -85,12 +85,13 @@ def appendFile(fileName,writeData,autoEOL=True):
 ### CLIENT FUNCTIONS ###
 # @param product = ürün
 # @param address = sipariş veren kişinin adresi
-def createNewOrder(product,address):
+def createNewOrder(product,address,count):
     # verileri saklıyacağımız sözlüğü oluştur
     orderData = {
         'name':product['name'],
         'address':address,
         'cost':product['cost'],
+        'count':count,
         'type':product['type']
     }
     
@@ -102,17 +103,19 @@ def createNewOrder(product,address):
     else:
         return 0
 
-def createNewFis(productName,cost):
+def createNewFis(productName,cost,count):
     print('''
 *-----------------*
 * Koko Restorant  *
 *-----------------*
 Ürün  : {}
+Adet  : {}
 Ücret : {}TL
 Kdv   : %8
 Total : {}TL
 *******************
-    '''.format(productName,cost, cost + cost*8/100))
+    '''.format(productName, count, cost * count, cost * count + cost*8/100 * count))
+    print('İyi günler dileriz.. :)\n\n')
 
 ### RESTAURANT FUNCTIONS ###
 # @param name  = Ürün Adı
@@ -191,7 +194,7 @@ def restaurantShowOrders():
     # order listteki elemanları sırayla order'a aktar
     i = 1
     for order in ORDER_LIST:
-        print(str(i)+'. Sipariş\n','Ürün adı: {}, Sipariş adresi: {}, Ürün tipi: {}\n'.format(order['name'],order['address'],order['type']),sep='')
+        print(str(i)+'. Sipariş\n','Ürün adı: {}, Sipariş adresi: {}, Ürün tipi: {}, Ürün adedi: {}\n'.format(order['name'],order['address'],order['type'],order['count']),sep='')
         i += 1
     print('\n')
     showRestaurantMenu()
@@ -226,7 +229,7 @@ def showProductMenu():
     i = 0# index tutucu
     # product listteki elemanları sırayla product'a aktar
     for product in PRODUCT_LIST:
-        print('#'+str(i),product['name'],' | Stok: {}'.format(str(product['stock']))) # sırayla ekrana bastır
+        print('#'+str(i),product['name'],' | Tip: {} | Stok: {}'.format(product['type'],str(product['stock']))) # sırayla ekrana bastır
         i += 1 # indexi 1 arttır
     
     try:
@@ -237,28 +240,38 @@ def showProductMenu():
             print('\n\nLütfen geçerli bir id giriniz.')
             showProductMenu()
         else: # id geçerli ise
-            if PRODUCT_LIST[productID]['stock'] < 1: # eğer stokta kalmamış ise
-                print('\n\nBu ürünün stoku kalmamıştır.')
+            try:
+                productCount = int(input('Kaç adet? '))
+                
+                if PRODUCT_LIST[productID]['stock'] < 1: # eğer stokta kalmamış ise
+                    print('\n\nBu ürünün stoku kalmamıştır.')
+                    showProductMenu()
+                elif PRODUCT_LIST[productID]['stock'] < productCount:
+                    print('\n\nYeterli stok bulunmamaktadır. Lütfen adeti azaltınız.')
+                    showProductMenu()
+                
+                toWhere = input('Adrese sipariş mi, yoksa dükkana mı? (adres,dükkan) ') # adresi al
+
+                if toWhere not in ['adres','dükkan']: # sipariş yerini yanlış yazar ise
+                    print('Geçerli bir seçim yapınız.')
+                    showProductMenu()
+                elif toWhere == 'adres': # adrese sipariş ise
+                    address = input('Adresinizi giriniz: ') # adresi al
+                else: # adres dükkana ise
+                    address = 'dükkan'
+                
+                if createNewOrder(PRODUCT_LIST[productID],address,productCount): # yeni sipariş oluştur
+                    # ürünün stokunu 1 azalt
+                    PRODUCT_LIST[productID]['stock'] -= productCount
+                    saveDBtoFile()
+
+                    print('\n\nSiparişiniz başarıyla verildi.\n\nFişiniz:')
+                    createNewFis(PRODUCT_LIST[productID]['name'],PRODUCT_LIST[productID]['cost'],productCount) # yeni fiş oluştur
+            except ValueError: # sayı girilmez ise
+                print('\n\nLütfen bir sayı giriniz.')
                 showProductMenu()
-            toWhere = input('Adrese sipariş mi, yoksa dükkana mı? (adres,dükkan) ') # adresi al
 
-            if toWhere not in ['adres','dükkan']: # sipariş yerini yanlış yazar ise
-                print('Geçerli bir seçim yapınız.')
-                showProductMenu()
-            elif toWhere == 'adres': # adrese sipariş ise
-                address = input('Adresinizi giriniz: ') # adresi al
-            else: # adres dükkana ise
-                address = 'dükkan'
-            
-            if createNewOrder(PRODUCT_LIST[productID],address): # yeni sipariş oluştur
-                # ürünün stokunu 1 azalt
-                PRODUCT_LIST[productID]['stock'] -= 1
-                saveDBtoFile()
-
-                print('\n\nSiparişiniz başarıyla verildi.\n\nFişiniz:')
-                createNewFis(PRODUCT_LIST[productID]['name'],PRODUCT_LIST[productID]['cost']) # yeni fiş oluştur
-
-    except ValueError:
+    except ValueError: # sayı girilmez ise
         print('\n\nLütfen bir sayı giriniz.')
         showProductMenu()
 
@@ -266,8 +279,9 @@ def showRestaurantMenu():
     print('Ürün Ayarları\n','-'*10,
           '\na) Ekle\n','b) Sil\n\n',
           'Stok\n','-'*10,
-          '\nc) Göster',
-          '\nd) Siparişler\n',sep='')
+          '\nc) Göster','\n',
+          '\nSiparişler\n','-'*10,
+          '\nd) Göster\n',sep='')
     while 1:
         command = input('[Yönetici] Komut >> ')
 
